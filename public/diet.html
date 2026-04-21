@@ -9,7 +9,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
-    /* === CSS GLOBAL (Sama dengan index.html) === */
+    /* === CSS GLOBAL === */
     :root {
       --primary: #2ECC71;
       --secondary: #3498DB;
@@ -76,14 +76,14 @@
       <button class="btn-download" onclick="downloadPDF()">📥 Unduh PDF Laporan</button>
 
       <section class="card">
-        <h3>Diagram Kalori (Minggu Ini)</h3>
+        <h3>Diagram Kalori (Terbaru)</h3>
         <canvas id="dietChart"></canvas>
       </section>
 
       <section class="card">
         <h3>🚨 Peringatan Makanan</h3>
         <ul id="warning-list">
-          <li style="color: #7F8C8D; text-align: center; font-size: 14px;">Memuat data dari database...</li>
+          <li style="color: #7F8C8D; text-align: center; font-size: 14px;">Memeriksa akun...</li>
         </ul>
       </section>
 
@@ -98,7 +98,9 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+    // IMPORT AUTH
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDooErB7K4vFtmC6-PcI30v82Vh6b85fPI",
@@ -111,42 +113,66 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
-    // Fungsi untuk memuat data dari Firebase
-    async function loadDietData() {
+    let chartInstance = null; // Menyimpan status chart agar tidak error saat di-update
+
+    // CEK LOGIN SEBELUM MENARIK DATA
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loadDietData(user.uid);
+      } else {
+        window.location.href = "auth.html"; // Usir jika belum login
+      }
+    });
+
+    // Fungsi memuat data KHUSUS untuk akun yang login
+    async function loadDietData(userId) {
+      document.getElementById("warning-list").innerHTML = `<li style="text-align:center;">Memuat data...</li>`;
       try {
-        const q = query(collection(db, "laporan_harian"), orderBy("waktu_input", "desc"));
+        // FILTER: Hanya ambil data yang userId-nya sama dengan akun saat ini
+        const q = query(
+          collection(db, "laporan_harian"), 
+          where("userId", "==", userId)
+        );
         const querySnapshot = await getDocs(q);
         
         let makananFrekuensi = {};
-        let namaMakanan = [];
-        let jumlahKalori = [];
+        // Data sementara untuk di-sort nanti
+        let rawData = []; 
 
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           if(data.kategori === "makanan" && data.kalori > 0) {
-            // Hitung frekuensi makanan untuk peringatan
-            const itemLCase = data.item.toLowerCase();
-            if(makananFrekuensi[itemLCase]) {
-              makananFrekuensi[itemLCase]++;
-            } else {
-              makananFrekuensi[itemLCase] = 1;
-            }
-
-            // Siapkan data untuk grafik (maksimal 5 item terakhir agar rapi)
-            if(namaMakanan.length < 5) {
-              namaMakanan.push(data.item);
-              jumlahKalori.push(data.kalori);
-            }
+            rawData.push(data);
+            
+            // Hitung frekuensi makanan
+            const itemLCase = data.item ? data.item.toLowerCase() : "tidak diketahui";
+            makananFrekuensi[itemLCase] = (makananFrekuensi[itemLCase] || 0) + 1;
           }
         });
 
-        // 1. Render Diagram Chart.js
-        renderChart(namaMakanan, jumlahKalori);
+        // Urutkan data berdasarkan waktu terbaru (karena 'where' dan 'orderBy' sering konflik di Firebase tanpa index manual)
+        rawData.sort((a, b) => {
+          const timeA = a.waktu_input ? a.waktu_input.toMillis() : 0;
+          const timeB = b.waktu_input ? b.waktu_input.toMillis() : 0;
+          return timeB - timeA; // Descending (Terbaru di atas)
+        });
 
-        // 2. Render Peringatan Makanan (Jika dimakan > 2 kali)
+        // Ambil 5 data terbaru untuk chart
+        let namaMakanan = [];
+        let jumlahKalori = [];
+        for(let i = 0; i < Math.min(5, rawData.length); i++) {
+          namaMakanan.push(rawData[i].item);
+          jumlahKalori.push(rawData[i].kalori);
+        }
+
+        // 1. Render Diagram Chart.js
+        renderChart(namaMakanan.reverse(), jumlahKalori.reverse()); // Reverse agar urutan kiri-kanan sesuai waktu
+
+        // 2. Render Peringatan
         const warningList = document.getElementById("warning-list");
-        warningList.innerHTML = ""; // Kosongkan text loading
+        warningList.innerHTML = ""; 
         let adaPeringatan = false;
 
         for (const [makanan, jumlah] of Object.entries(makananFrekuensi)) {
@@ -162,15 +188,20 @@
 
       } catch (error) {
         console.error("Gagal memuat data:", error);
-        document.getElementById("warning-list").innerHTML = `<li>Gagal menarik data database.</li>`;
+        document.getElementById("warning-list").innerHTML = `<li style="color:red; text-align:center;">Gagal menarik data. ${error.message}</li>`;
       }
     }
 
-    // Fungsi untuk menggambar Diagram menggunakan Chart.js
     function renderChart(labels, dataKalori) {
       const ctx = document.getElementById('dietChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'bar', // Bisa diganti 'pie' atau 'line'
+      
+      // Hapus chart lama jika ada, agar tidak menumpuk
+      if(chartInstance) {
+        chartInstance.destroy();
+      }
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
         data: {
           labels: labels,
           datasets: [{
@@ -186,14 +217,10 @@
         }
       });
     }
-
-    // Panggil fungsi saat halaman selesai dimuat
-    loadDietData();
   </script>
 
   <script>
     function downloadPDF() {
-      // Sembunyikan tombol download sementara agar tidak ikut ke-print
       const btn = document.querySelector('.btn-download');
       btn.style.display = 'none';
 
@@ -206,7 +233,6 @@
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
-      // Generate PDF, lalu munculkan lagi tombolnya
       html2pdf().set(opt).from(element).save().then(() => {
         btn.style.display = 'block';
       });
