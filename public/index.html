@@ -39,12 +39,14 @@
     .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
     .header-top h1 { font-size: 24px; font-weight: 700; letter-spacing: 1px; }
     
-    .btn-logout {
+    /* Tombol Profil Baru */
+    .btn-profile {
       background: rgba(255, 255, 255, 0.2); border: none; color: white;
-      padding: 6px 12px; border-radius: 8px; font-size: 12px;
+      padding: 6px 12px; border-radius: 8px; font-size: 13px;
       cursor: pointer; font-weight: bold; transition: background 0.3s;
+      display: flex; align-items: center; gap: 5px;
     }
-    .btn-logout:hover { background: rgba(255, 255, 255, 0.4); }
+    .btn-profile:hover { background: rgba(255, 255, 255, 0.4); }
 
     .greeting { font-size: 18px; font-weight: 600; margin-bottom: 5px; }
     .sub-greeting { font-size: 13px; opacity: 0.9; }
@@ -127,10 +129,10 @@
     <header>
       <div class="header-top">
         <h1>KostFit</h1>
-        <button class="btn-logout" onclick="logoutAccount()">Keluar</button>
+        <button class="btn-profile" onclick="window.location.href='profil.html'">👤 Profil</button>
       </div>
       <div class="greeting" id="greeting-text">Memuat...</div>
-      <div class="sub-greeting">Ringkasan harianmu sudah siap. (Profil dalam pengembangan)</div>
+      <div class="sub-greeting">Ringkasan harianmu sudah siap.</div>
     </header>
 
     <nav>
@@ -177,7 +179,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
     import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDooErB7K4vFtmC6-PcI30v82Vh6b85fPI",
@@ -309,13 +311,6 @@
         container.innerHTML = `<p style="color:red; text-align:center; font-size:14px;">Gagal memuat rekomendasi pintar dari AI.</p>`;
         btnRef.innerText = "🔄 Refresh";
       }
-    }
-
-    // Fungsi Logout
-    window.logoutAccount = function() {
-      signOut(auth).then(() => {
-        window.location.href = "auth.html";
-      });
     }
   </script>
 
