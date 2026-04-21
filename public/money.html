@@ -9,6 +9,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
+    /* === CSS GLOBAL === */
     :root {
       --primary: #2ECC71;
       --secondary: #3498DB;
@@ -35,7 +36,7 @@
       font-size: 20px; cursor: pointer; margin-right: 15px;
     }
 
-    main { flex: 1; padding: 15px; }
+    main { flex: 1; padding: 15px; overflow-y: auto; }
 
     .card {
       background: white; border-radius: 12px; padding: 20px;
@@ -58,10 +59,10 @@
 
     .transaction-item {
       display: flex; justify-content: space-between;
-      padding: 10px 0; border-bottom: 1px solid #eee;
+      padding: 12px 0; border-bottom: 1px solid #eee;
     }
     .item-name { font-weight: 500; }
-    .item-price { color: var(--text-main); }
+    .item-price { color: var(--text-main); font-weight: bold; }
   </style>
 </head>
 <body>
@@ -76,29 +77,32 @@
       <button class="btn-download" onclick="downloadMoneyPDF()">📥 Cetak Laporan Keuangan</button>
 
       <section class="card">
-        <h3>Total Minggu Ini</h3>
-        <h1 id="total-spend" style="margin: 10px 0;">Rp 0</h1>
+        <h3 style="text-align: center; color: var(--text-main);">Total Minggu Ini</h3>
+        <h1 id="total-spend" style="margin: 10px 0; text-align: center;">Rp 0</h1>
         <div id="budget-info" class="budget-status status-safe">
-          Target: Rp 300.000 / minggu
+          Memeriksa data...
         </div>
       </section>
 
       <section class="card">
-        <h3>Alokasi Dana</h3>
+        <h3 style="text-align: center; color: var(--text-main); margin-bottom: 10px;">Alokasi Dana</h3>
         <canvas id="moneyChart"></canvas>
       </section>
 
       <section class="card">
-        <h3>Riwayat Jajan</h3>
+        <h3 style="color: var(--text-main); border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 10px;">Riwayat Jajan</h3>
         <div id="history-list">
-          </div>
+          <p style="text-align: center; color: #7F8C8D; font-size: 14px;">Memuat riwayat transaksimu...</p>
+        </div>
       </section>
     </main>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+    // IMPORT AUTH
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDooErB7K4vFtmC6-PcI30v82Vh6b85fPI",
@@ -111,66 +115,106 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
     const TARGET_MINGGUAN = 300000;
+    let chartInstance = null;
 
-    async function loadFinanceData() {
-      const q = query(collection(db, "laporan_harian"), orderBy("waktu_input", "desc"));
-      const querySnapshot = await getDocs(q);
-      
-      let total = 0;
-      let categories = { "makanan": 0, "lain-lain": 0 };
-      const historyList = document.getElementById('history-list');
-      historyList.innerHTML = "";
-
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data.harga > 0) {
-          total += data.harga;
-          categories[data.kategori] = (categories[data.kategori] || 0) + data.harga;
-
-          // Render list
-          historyList.innerHTML += `
-            <div class="transaction-item">
-              <span class="item-name">${data.item}</span>
-              <span class="item-price">Rp ${data.harga.toLocaleString('id-ID')}</span>
-            </div>
-          `;
-        }
-      });
-
-      // Update UI Total & Status Merah
-      const totalText = document.getElementById('total-spend');
-      const statusBox = document.getElementById('budget-info');
-      
-      totalText.innerText = `Rp ${total.toLocaleString('id-ID')}`;
-      
-      if (total > TARGET_MINGGUAN) {
-        totalText.style.color = "var(--danger)";
-        statusBox.innerText = "🚨 OVERBUDGET!";
-        statusBox.className = "budget-status status-danger";
+    // CEK LOGIN SEBELUM MENARIK DATA
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loadFinanceData(user.uid);
       } else {
-        statusBox.innerText = `Sisa kuota: Rp ${(TARGET_MINGGUAN - total).toLocaleString('id-ID')}`;
+        window.location.href = "auth.html"; // Usir jika belum login
       }
+    });
 
-      renderMoneyChart(Object.keys(categories), Object.values(categories));
+    async function loadFinanceData(userId) {
+      try {
+        // HANYA TARIK DATA MILIK USER INI
+        const q = query(collection(db, "laporan_harian"), where("userId", "==", userId));
+        const querySnapshot = await getDocs(q);
+        
+        let rawData = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          if (data.harga > 0) {
+            rawData.push(data);
+          }
+        });
+
+        // Urutkan dari yang terbaru ke yang terlama
+        rawData.sort((a, b) => {
+          const timeA = a.waktu_input ? a.waktu_input.toMillis() : 0;
+          const timeB = b.waktu_input ? b.waktu_input.toMillis() : 0;
+          return timeB - timeA; 
+        });
+
+        let total = 0;
+        let categories = { "makanan": 0, "lain-lain": 0 };
+        const historyList = document.getElementById('history-list');
+        historyList.innerHTML = "";
+
+        if (rawData.length === 0) {
+          historyList.innerHTML = `<p style="text-align: center; color: #7F8C8D; font-size: 14px;">Belum ada pengeluaran yang dicatat.</p>`;
+        } else {
+          rawData.forEach((data) => {
+            total += data.harga;
+            
+            // Pengelompokan Kategori untuk Chart
+            const kat = data.kategori ? data.kategori.toLowerCase() : "lain-lain";
+            categories[kat] = (categories[kat] || 0) + data.harga;
+
+            // Render list
+            historyList.innerHTML += `
+              <div class="transaction-item">
+                <span class="item-name">${data.item || "Barang tidak diketahui"}</span>
+                <span class="item-price">Rp ${data.harga.toLocaleString('id-ID')}</span>
+              </div>
+            `;
+          });
+        }
+
+        // Update UI Total & Status Merah
+        const totalText = document.getElementById('total-spend');
+        const statusBox = document.getElementById('budget-info');
+        
+        totalText.innerText = `Rp ${total.toLocaleString('id-ID')}`;
+        
+        if (total > TARGET_MINGGUAN) {
+          totalText.style.color = "var(--danger)";
+          statusBox.innerText = "🚨 OVERBUDGET!";
+          statusBox.className = "budget-status status-danger";
+        } else {
+          statusBox.innerText = `Sisa kuota aman: Rp ${(TARGET_MINGGUAN - total).toLocaleString('id-ID')}`;
+        }
+
+        renderMoneyChart(Object.keys(categories), Object.values(categories));
+
+      } catch (error) {
+        console.error("Gagal menarik data keuangan: ", error);
+        document.getElementById('history-list').innerHTML = `<p style="text-align: center; color: red;">Gagal memuat data.</p>`;
+      }
     }
 
     function renderMoneyChart(labels, dataValues) {
       const ctx = document.getElementById('moneyChart').getContext('2d');
-      new Chart(ctx, {
+      
+      if(chartInstance) {
+        chartInstance.destroy();
+      }
+
+      chartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
           labels: labels,
           datasets: [{
             data: dataValues,
-            backgroundColor: ['#2ECC71', '#3498DB', '#F1C40F']
+            backgroundColor: ['#2ECC71', '#3498DB', '#F1C40F', '#E74C3C']
           }]
         }
       });
     }
-
-    loadFinanceData();
   </script>
 
   <script>
