@@ -26,7 +26,7 @@ export default async function handler(req, res) {
   ]`;
 
   // MENGGUNAKAN MODEL GEMMA 4 TERBARU
-  const modelsToTry = ['gemma-4-26b-it', 'gemma-4-9b-it'];
+  const modelsToTry = ['gemini-2.5-flash', 'gemini-3-flash-preview'];
   let lastError = null;
 
   for (const modelName of modelsToTry) {
