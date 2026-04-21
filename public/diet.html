@@ -9,54 +9,63 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
-    /* === CSS GLOBAL === */
+    /* === CSS MODERN CORPORATE === */
     :root {
-      --primary: #2ECC71;
-      --secondary: #3498DB;
-      --danger: #E74C3C;
-      --bg-color: #F8F9F9;
+      --primary-dark: #0F5132; 
+      --primary-light: #2ECC71; 
+      --secondary: #3498DB; 
+      --danger: #E74C3C; 
+      --bg-corporate: #E9ECEF;
       --text-main: #2C3E50;
+      --text-muted: #6C757D;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-    body { background-color: #E5E8E8; display: flex; justify-content: center; }
+    body { background-color: var(--bg-corporate); display: flex; justify-content: center; }
 
     #app-container {
-      background-color: var(--bg-color);
+      background-color: #F8F9FA;
       width: 100%; max-width: 480px; min-height: 100vh;
       display: flex; flex-direction: column;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
     }
 
     header {
-      background-color: var(--primary); color: white;
-      padding: 15px; display: flex; align-items: center;
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-light) 100%);
+      color: white; padding: 20px 15px; display: flex; align-items: center;
+      border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
+      box-shadow: 0 4px 10px rgba(46, 204, 113, 0.2);
     }
     .back-btn {
-      background: none; border: none; color: white;
-      font-size: 20px; cursor: pointer; margin-right: 15px;
-      font-weight: bold;
+      background: rgba(255, 255, 255, 0.2); border: none; color: white;
+      font-size: 18px; cursor: pointer; margin-right: 15px;
+      width: 35px; height: 35px; border-radius: 8px; display: flex;
+      justify-content: center; align-items: center; font-weight: bold;
     }
+    .header-title { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
 
-    main { flex: 1; padding: 15px; }
+    main { flex: 1; padding: 20px 15px; overflow-y: auto; }
 
     .card {
       background: white; border-radius: 12px; padding: 20px;
-      margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+      border: 1px solid #eee;
     }
 
-    h3 { color: var(--text-main); margin-bottom: 15px; text-align: center; }
+    .card h3 { color: var(--primary-dark); font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
 
     .btn-download {
-      background-color: var(--text-main); color: white;
-      border: none; padding: 12px; border-radius: 10px;
-      width: 100%; font-size: 16px; font-weight: bold;
-      cursor: pointer; margin-bottom: 15px;
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-light) 100%);
+      color: white; border: none; padding: 12px; border-radius: 8px;
+      width: 100%; font-size: 15px; font-weight: bold;
+      cursor: pointer; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(46, 204, 113, 0.2);
+      transition: opacity 0.3s;
     }
+    .btn-download:hover { opacity: 0.9; }
 
     .alert-red {
-      color: var(--danger); font-weight: bold;
-      background-color: #FDEDEC; padding: 10px;
-      border-radius: 8px; margin-bottom: 5px;
+      color: var(--danger); font-weight: bold; font-size: 14px;
+      background-color: #FDEDEC; padding: 12px;
+      border-radius: 8px; margin-bottom: 8px;
       border-left: 4px solid var(--danger);
     }
 
@@ -69,28 +78,28 @@
   <div id="app-container">
     <header>
       <button class="back-btn" onclick="window.location.href='index.html'">←</button>
-      <h2>Laporan Diet</h2>
+      <h2 class="header-title">Laporan Diet</h2>
     </header>
 
     <main id="laporan-area">
       <button class="btn-download" onclick="downloadPDF()">📥 Unduh PDF Laporan</button>
 
       <section class="card">
-        <h3>Diagram Kalori (Terbaru)</h3>
+        <h3>Diagram Kalori Harian</h3>
         <canvas id="dietChart"></canvas>
       </section>
 
       <section class="card">
-        <h3>🚨 Peringatan Makanan</h3>
+        <h3>🚨 Peringatan Jenis Makanan</h3>
         <ul id="warning-list">
-          <li style="color: #7F8C8D; text-align: center; font-size: 14px;">Memeriksa akun...</li>
+          <li style="color: #7F8C8D; text-align: center; font-size: 14px;">Memeriksa data diet Anda...</li>
         </ul>
       </section>
 
       <section class="card">
         <h3>💡 Pola Hidup Sehat</h3>
-        <p style="font-size: 14px; color: #555; line-height: 1.5;">
-          Sebagai anak kost, pastikan minum air putih minimal 2 liter per hari. Kurangi gorengan dan perbanyak sayur berkuah (seperti sayur sop atau bayam) yang murah dan sehat!
+        <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6;">
+          Sebagai anak kost, pastikan minum air putih minimal 2 liter per hari. Kurangi porsi gorengan dan perbanyak makanan berkuah bening (seperti sayur sop atau bayam) yang terjangkau dan sehat.
         </p>
       </section>
     </main>
@@ -98,8 +107,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-    // IMPORT AUTH
+    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -115,30 +123,24 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    let chartInstance = null; // Menyimpan status chart agar tidak error saat di-update
+    let chartInstance = null; 
 
     // CEK LOGIN SEBELUM MENARIK DATA
     onAuthStateChanged(auth, (user) => {
       if (user) {
         loadDietData(user.uid);
       } else {
-        window.location.href = "auth.html"; // Usir jika belum login
+        window.location.href = "auth.html";
       }
     });
 
-    // Fungsi memuat data KHUSUS untuk akun yang login
     async function loadDietData(userId) {
-      document.getElementById("warning-list").innerHTML = `<li style="text-align:center;">Memuat data...</li>`;
+      document.getElementById("warning-list").innerHTML = `<li style="text-align:center; font-size: 14px;">Memuat data...</li>`;
       try {
-        // FILTER: Hanya ambil data yang userId-nya sama dengan akun saat ini
-        const q = query(
-          collection(db, "laporan_harian"), 
-          where("userId", "==", userId)
-        );
+        const q = query(collection(db, "laporan_harian"), where("userId", "==", userId));
         const querySnapshot = await getDocs(q);
         
         let makananFrekuensi = {};
-        // Data sementara untuk di-sort nanti
         let rawData = []; 
 
         querySnapshot.forEach((doc) => {
@@ -146,31 +148,41 @@
           if(data.kategori === "makanan" && data.kalori > 0) {
             rawData.push(data);
             
-            // Hitung frekuensi makanan
+            // Hitung frekuensi per jenis makanan untuk peringatan di bawah
             const itemLCase = data.item ? data.item.toLowerCase() : "tidak diketahui";
             makananFrekuensi[itemLCase] = (makananFrekuensi[itemLCase] || 0) + 1;
           }
         });
 
-        // Urutkan data berdasarkan waktu terbaru (karena 'where' dan 'orderBy' sering konflik di Firebase tanpa index manual)
+        // 1. Urutkan data berdasarkan waktu dari yang terlama ke terbaru
         rawData.sort((a, b) => {
           const timeA = a.waktu_input ? a.waktu_input.toMillis() : 0;
           const timeB = b.waktu_input ? b.waktu_input.toMillis() : 0;
-          return timeB - timeA; // Descending (Terbaru di atas)
+          return timeA - timeB; // Ascending (Kiri ke Kanan di Grafik)
         });
 
-        // Ambil 5 data terbaru untuk chart
-        let namaMakanan = [];
-        let jumlahKalori = [];
-        for(let i = 0; i < Math.min(5, rawData.length); i++) {
-          namaMakanan.push(rawData[i].item);
-          jumlahKalori.push(rawData[i].kalori);
-        }
+        // 2. Gabungkan kalori berdasarkan Tanggal
+        let kaloriPerTanggal = new Map();
+        
+        rawData.forEach(data => {
+          if (data.waktu_input) {
+            const dateObj = data.waktu_input.toDate();
+            // Format tanggal (contoh: "21 Apr")
+            const dateStr = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+            
+            // Tambahkan kalori ke tanggal tersebut
+            kaloriPerTanggal.set(dateStr, (kaloriPerTanggal.get(dateStr) || 0) + data.kalori);
+          }
+        });
 
-        // 1. Render Diagram Chart.js
-        renderChart(namaMakanan.reverse(), jumlahKalori.reverse()); // Reverse agar urutan kiri-kanan sesuai waktu
+        // 3. Ambil maksimal 7 hari terakhir agar grafik tidak terlalu padat
+        const labels = Array.from(kaloriPerTanggal.keys()).slice(-7);
+        const dataKalori = Array.from(kaloriPerTanggal.values()).slice(-7);
 
-        // 2. Render Peringatan
+        // Render Grafik
+        renderChart(labels, dataKalori);
+
+        // 4. Render Peringatan Jenis Makanan
         const warningList = document.getElementById("warning-list");
         warningList.innerHTML = ""; 
         let adaPeringatan = false;
@@ -178,12 +190,12 @@
         for (const [makanan, jumlah] of Object.entries(makananFrekuensi)) {
           if(jumlah > 2) {
             adaPeringatan = true;
-            warningList.innerHTML += `<li class="alert-red">Kamu makan <b>${makanan}</b> sebanyak ${jumlah}x! Hati-hati ya.</li>`;
+            warningList.innerHTML += `<li class="alert-red">Kamu makan <b>${makanan}</b> sebanyak ${jumlah}x! Batasi ya.</li>`;
           }
         }
         
         if(!adaPeringatan) {
-          warningList.innerHTML = `<li style="color: var(--primary); text-align:center;">Mantap! Pola makanmu masih aman.</li>`;
+          warningList.innerHTML = `<li style="color: var(--primary-light); text-align:center; font-weight: 500;">Mantap! Variasi makananmu cukup baik.</li>`;
         }
 
       } catch (error) {
@@ -195,7 +207,6 @@
     function renderChart(labels, dataKalori) {
       const ctx = document.getElementById('dietChart').getContext('2d');
       
-      // Hapus chart lama jika ada, agar tidak menumpuk
       if(chartInstance) {
         chartInstance.destroy();
       }
@@ -205,15 +216,26 @@
         data: {
           labels: labels,
           datasets: [{
-            label: 'Estimasi Kalori',
+            label: 'Total Kalori (kkal)',
             data: dataKalori,
             backgroundColor: '#2ECC71',
-            borderRadius: 5
+            borderRadius: 6
           }]
         },
         options: {
           responsive: true,
-          scales: { y: { beginAtZero: true } }
+          scales: { 
+            y: { 
+              beginAtZero: true,
+              grid: { borderDash: [5, 5] } 
+            },
+            x: {
+              grid: { display: false }
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          }
         }
       });
     }
@@ -226,8 +248,8 @@
 
       const element = document.getElementById('laporan-area');
       const opt = {
-        margin:       10,
-        filename:     'Laporan_Diet_KostFit.pdf',
+        margin:       15,
+        filename:     'Laporan_Diet_Harian_KostFit.pdf',
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2 },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
