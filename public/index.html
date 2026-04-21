@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KostFit - Diet & Keuangan</title>
+  
+  <style>
+    /* CSS Global & Layout Mobile */
+    :root {
+      --primary: #2ECC71; /* Hijau Diet */
+      --secondary: #3498DB; /* Biru Uang */
+      --danger: #E74C3C; /* Merah Peringatan */
+      --bg-color: #F8F9F9;
+      --text-main: #2C3E50;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+
+    body { background-color: #E5E8E8; display: flex; justify-content: center; }
+
+    /* Pembatas Layar HP */
+    #app-container {
+      background-color: var(--bg-color);
+      width: 100%;
+      max-width: 480px; 
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    /* Header */
+    header {
+      background-color: var(--primary);
+      color: white;
+      text-align: center;
+      padding: 20px 15px;
+      border-bottom-left-radius: 15px;
+      border-bottom-right-radius: 15px;
+    }
+
+    /* Navigasi */
+    nav { display: flex; justify-content: space-around; padding: 20px 15px; }
+    
+    .nav-btn {
+      flex: 1; margin: 0 5px; padding: 15px 10px;
+      border: none; border-radius: 10px; color: white;
+      font-weight: bold; cursor: pointer;
+    }
+    .btn-diet { background-color: var(--primary); }
+    .btn-money { background-color: var(--secondary); }
+
+    /* Konten Utama */
+    main { flex: 1; padding: 15px; }
+
+    .card {
+      background: white; border-radius: 12px; padding: 20px;
+      margin-bottom: 15px; text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .btn-chat {
+      margin-top: 10px; background-color: var(--text-main);
+      color: white; border: none; padding: 15px 20px;
+      border-radius: 25px; font-size: 16px; cursor: pointer;
+      width: 100%; font-weight: bold;
+    }
+
+    .summary-item {
+      display: flex; justify-content: space-between;
+      padding: 12px 0; border-bottom: 1px solid #eee; font-weight: 500;
+    }
+    .summary-item:last-child { border-bottom: none; }
+    
+    .value-diet { color: var(--primary); font-weight: bold; }
+    .value-money { color: var(--danger); font-weight: bold; }
+
+    /* Footer */
+    footer { text-align: center; padding: 15px; color: #7F8C8D; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+  <div id="app-container">
+    <header>
+      <h1>KostFit</h1>
+      <p style="font-size: 14px; margin-top: 5px;">Asisten Pintar Anak Kost</p>
+    </header>
+
+    <nav>
+      <button class="nav-btn btn-diet" onclick="window.location.href='diet.html'">🎯 Diet</button>
+      <button class="nav-btn btn-money" onclick="window.location.href='money.html'">💰 Keuangan</button>
+    </nav>
+
+    <main>
+      <section class="card">
+        <h3 style="color: var(--text-main);">Lapor Sekarang!</h3>
+        <p style="color: #7F8C8D; font-size: 14px; margin: 10px 0;">Habis jajan atau makan besar? Catat pakai AI.</p>
+        <button class="btn-chat" onclick="window.location.href='chat.html'">💬 Chat AI Pencatat</button>
+      </section>
+
+      <section class="card">
+        <h3 style="color: var(--text-main); margin-bottom: 10px;">Ringkasan Hari Ini</h3>
+        <div class="summary-item">
+          <span>Kalori Masuk:</span>
+          <span class="value-diet" id="today-cal">0 kkal</span>
+        </div>
+        <div class="summary-item">
+          <span>Pengeluaran:</span>
+          <span class="value-money" id="today-expense">Rp 0</span>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 KostFit App</p>
+    </footer>
+  </div>
+
+</body>
+</html>
