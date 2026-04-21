@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     // Mengambil API Key dari Environment Variables Vercel
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     // Kita pakai model gemini-pro atau gemini-1.5-flash
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' }); 
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' }); 
 
     // Prompt khusus agar AI menjadi JSON generator
     const prompt = `Kamu adalah asisten pencatat diet dan keuangan untuk anak kost.
