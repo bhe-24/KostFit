@@ -3,114 +3,159 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KostFit - Masuk / Daftar</title>
+  <title>KostFit - Portal Masuk</title>
   
   <style>
-    /* === CSS GLOBAL & MOBILE-FIRST === */
+    /* === CSS MODERN CORPORATE === */
     :root {
-      --primary: #2ECC71;
-      --secondary: #3498DB;
-      --danger: #E74C3C;
-      --bg-color: #F8F9F9;
+      --primary-dark: #0F5132; /* Hijau Tua Perkantoran */
+      --primary-light: #2ECC71; /* Hijau Muda Segar */
       --text-main: #2C3E50;
+      --text-muted: #6C757D;
+      --bg-corporate: #E9ECEF; /* Abu-abu bersih ala enterprise */
+      --danger: #E74C3C;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-    body { background-color: #E5E8E8; display: flex; justify-content: center; }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    
+    /* Latar belakang nuansa formal perusahaan */
+    body { 
+      background-color: var(--bg-corporate);
+      background-image: radial-gradient(circle at 50% 0%, #ffffff 0%, transparent 70%);
+      display: flex; justify-content: center; align-items: center; min-height: 100vh;
+    }
 
     #app-container {
-      background-color: var(--bg-color);
-      width: 100%; max-width: 480px; min-height: 100vh;
-      display: flex; flex-direction: column; justify-content: center;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1); padding: 20px;
+      width: 100%; max-width: 420px; padding: 20px;
     }
 
+    /* Card Utama dengan gaya modern bersih */
     .auth-card {
-      background: white; border-radius: 15px; padding: 30px 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center;
+      background: white; 
+      border-radius: 12px; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+      overflow: hidden; /* Agar border radius atas menutupi header */
     }
 
-    .auth-card h1 { color: var(--primary); margin-bottom: 5px; }
-    .auth-card p { color: #7F8C8D; font-size: 14px; margin-bottom: 20px; }
+    /* Header Gradasi Hijau Tua ke Muda */
+    .card-header {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-light) 100%);
+      color: white;
+      text-align: center;
+      padding: 35px 20px;
+    }
+
+    .card-header h1 { font-size: 28px; font-weight: 700; letter-spacing: 1px; margin-bottom: 5px; }
+    .card-header p { font-size: 14px; opacity: 0.9; font-weight: 400; }
+
+    .card-body { padding: 30px 25px; }
 
     /* Tombol Toggle Login/Daftar */
     .toggle-box {
-      display: flex; justify-content: space-between; margin-bottom: 20px;
-      background: #eee; border-radius: 25px; padding: 5px;
+      display: flex; justify-content: space-between; margin-bottom: 25px;
+      background: #F8F9FA; border-radius: 8px; padding: 5px; border: 1px solid #E0E0E0;
     }
     .toggle-btn {
       flex: 1; padding: 10px; border: none; background: transparent;
-      border-radius: 20px; font-weight: bold; cursor: pointer;
-      color: #777; transition: 0.3s;
+      border-radius: 6px; font-weight: 600; cursor: pointer;
+      color: var(--text-muted); transition: all 0.3s ease; font-size: 14px;
     }
-    .toggle-btn.active { background: white; color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .toggle-btn.active { 
+      background: white; color: var(--primary-dark); 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+    }
 
     /* Form Input */
-    .input-group { margin-bottom: 15px; text-align: left; }
-    .input-group label { display: block; font-size: 14px; margin-bottom: 5px; color: var(--text-main); font-weight: 500; }
-    .input-group input {
-      width: 100%; padding: 12px; border: 1px solid #ccc;
-      border-radius: 10px; outline: none; font-size: 15px;
+    .input-group { margin-bottom: 18px; text-align: left; }
+    .input-group label { display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-main); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
+    
+    .input-wrapper { position: relative; display: flex; align-items: center; }
+    .input-wrapper input {
+      width: 100%; padding: 14px 15px; border: 1px solid #CED4DA;
+      border-radius: 8px; outline: none; font-size: 15px; color: var(--text-main);
+      transition: border-color 0.2s;
     }
+    .input-wrapper input:focus { border-color: var(--primary-light); }
+    
+    /* Tombol Show/Hide Password */
+    .toggle-pwd-btn {
+      position: absolute; right: 15px; background: none; border: none;
+      color: var(--text-muted); font-size: 13px; font-weight: 600;
+      cursor: pointer; padding: 5px;
+    }
+    .toggle-pwd-btn:hover { color: var(--primary-dark); }
 
+    /* Tombol Submit */
     .btn-submit {
-      width: 100%; padding: 15px; border: none; border-radius: 10px;
-      background-color: var(--primary); color: white; font-size: 16px;
-      font-weight: bold; cursor: pointer; margin-top: 10px;
+      width: 100%; padding: 15px; border: none; border-radius: 8px;
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-light) 100%);
+      color: white; font-size: 16px; font-weight: bold; cursor: pointer; 
+      margin-top: 10px; transition: opacity 0.2s; box-shadow: 0 4px 6px rgba(46, 204, 113, 0.2);
     }
+    .btn-submit:hover { opacity: 0.9; }
 
-    .divider { margin: 20px 0; color: #aaa; font-size: 14px; display: flex; align-items: center; }
-    .divider::before, .divider::after { content: ""; flex: 1; border-bottom: 1px solid #ddd; margin: 0 10px; }
-
-    .btn-google {
-      width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 10px;
-      background-color: white; color: var(--text-main); font-size: 15px;
-      font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;
+    #error-msg { 
+      color: var(--danger); font-size: 13px; margin-top: 15px; 
+      display: none; text-align: center; font-weight: 500; background: #FDEDEC; padding: 10px; border-radius: 6px;
     }
     
-    #error-msg { color: var(--danger); font-size: 14px; margin-top: 15px; display: none; }
+    .footer-text { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 20px; }
   </style>
 </head>
 <body>
 
   <div id="app-container">
     <div class="auth-card">
-      <h1>KostFit</h1>
-      <p>Asisten Cerdas Keuangan & Dietmu</p>
-
-      <div class="toggle-box">
-        <button id="btn-login-tab" class="toggle-btn active" onclick="switchTab('login')">Masuk</button>
-        <button id="btn-register-tab" class="toggle-btn" onclick="switchTab('register')">Daftar</button>
+      <div class="card-header">
+        <h1>KostFit</h1>
+        <p>Sistem Pengelolaan Diet & Finansial</p>
       </div>
 
-      <div id="form-area">
-        <div class="input-group">
-          <label>Email</label>
-          <input type="email" id="email" placeholder="contoh@email.com">
+      <div class="card-body">
+        <div class="toggle-box">
+          <button id="btn-login-tab" class="toggle-btn active" onclick="switchTab('login')">Masuk</button>
+          <button id="btn-register-tab" class="toggle-btn" onclick="switchTab('register')">Daftar Akun</button>
         </div>
-        <div class="input-group">
-          <label>Password</label>
-          <input type="password" id="password" placeholder="Minimal 6 karakter">
+
+        <div id="form-area">
+          <div class="input-group" id="name-group" style="display: none;">
+            <label>Nama Lengkap</label>
+            <div class="input-wrapper">
+              <input type="text" id="fullname" placeholder="Masukkan nama Anda">
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Email Akses</label>
+            <div class="input-wrapper">
+              <input type="email" id="email" placeholder="contoh@perusahaan.com">
+            </div>
+          </div>
+          
+          <div class="input-group">
+            <label>Kata Sandi</label>
+            <div class="input-wrapper">
+              <input type="password" id="password" placeholder="Minimal 6 karakter sandi">
+              <button type="button" id="toggle-pwd" class="toggle-pwd-btn">Lihat</button>
+            </div>
+          </div>
+          
+          <button id="btn-action" class="btn-submit">Otorisasi Masuk</button>
         </div>
-        <button id="btn-action" class="btn-submit">Masuk Sekarang</button>
+
+        <p id="error-msg">Error: Pesan kesalahan di sini</p>
       </div>
-
-      <p id="error-msg">Error: Pesan kesalahan di sini</p>
-
-      <div class="divider">ATAU</div>
-
-      <button id="btn-google" class="btn-google">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20" alt="Google Logo">
-        Lanjutkan dengan Google
-      </button>
     </div>
+    
+    <p class="footer-text">&copy; 2026 KostFit App. Hak Cipta Dilindungi.</p>
   </div>
 
   <script type="module">
-    // 1. Import Firebase Core & Auth
+    // 1. Import Firebase Core & Auth (Hanya Email & Password, tanpa Google)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
     import { 
       getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
-      GoogleAuthProvider, signInWithPopup, onAuthStateChanged 
+      onAuthStateChanged, updateProfile 
     } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
     // 2. Konfigurasi Firebase
@@ -126,27 +171,44 @@
     // 3. Inisialisasi
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
 
-    // 4. Cek apakah user sudah login, jika sudah langsung pindah ke index.html
+    // 4. Cek apakah user sudah login, jika sudah arahkan ke dashboard
     onAuthStateChanged(auth, (user) => {
       if (user) {
         window.location.href = "index.html";
       }
     });
 
-    // === LOGIKA UI (TOGGLE LOGIN/DAFTAR) ===
+    // === LOGIKA UI (TOGGLE LOGIN/DAFTAR & PASSWORD) ===
     let isLoginMode = true;
     const btnAction = document.getElementById("btn-action");
     const errorMsg = document.getElementById("error-msg");
+    const nameGroup = document.getElementById("name-group");
+    const pwdInput = document.getElementById("password");
+    const togglePwdBtn = document.getElementById("toggle-pwd");
 
+    // Fungsi Pindah Tab
     window.switchTab = function(mode) {
       isLoginMode = (mode === 'login');
       document.getElementById("btn-login-tab").classList.toggle("active", isLoginMode);
       document.getElementById("btn-register-tab").classList.toggle("active", !isLoginMode);
-      btnAction.innerText = isLoginMode ? "Masuk Sekarang" : "Daftar Akun Baru";
+      
+      // Ubah teks tombol dan tampilkan/sembunyikan kolom Nama
+      btnAction.innerText = isLoginMode ? "Otorisasi Masuk" : "Registrasi Akun Baru";
+      nameGroup.style.display = isLoginMode ? "none" : "block";
       errorMsg.style.display = "none";
     }
+
+    // Fungsi Lihat/Sembunyikan Kata Sandi
+    togglePwdBtn.addEventListener("click", () => {
+      if (pwdInput.type === "password") {
+        pwdInput.type = "text";
+        togglePwdBtn.innerText = "Sembunyi";
+      } else {
+        pwdInput.type = "password";
+        togglePwdBtn.innerText = "Lihat";
+      }
+    });
 
     function showError(msg) {
       errorMsg.innerText = msg;
@@ -155,38 +217,43 @@
 
     // === LOGIKA AUTENTIKASI ===
     btnAction.addEventListener("click", () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+      const fullname = document.getElementById("fullname").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = pwdInput.value;
 
+      // Validasi Input
+      if (!isLoginMode && !fullname) {
+        showError("Nama Lengkap wajib diisi untuk registrasi!");
+        return;
+      }
       if (!email || !password) {
-        showError("Email dan password wajib diisi!");
+        showError("Email dan Kata Sandi tidak boleh kosong!");
         return;
       }
 
-      btnAction.innerText = "Memproses...";
+      btnAction.innerText = "Memproses Sistem...";
 
       if (isLoginMode) {
-        // Proses Login
+        // PROSES MASUK (LOGIN)
         signInWithEmailAndPassword(auth, email, password)
           .catch((error) => {
-            showError(error.message.includes("invalid-credential") ? "Email atau Password salah!" : error.message);
-            btnAction.innerText = "Masuk Sekarang";
+            showError(error.message.includes("invalid-credential") ? "Kredensial salah atau tidak ditemukan." : "Terjadi kesalahan sistem: " + error.message);
+            btnAction.innerText = "Otorisasi Masuk";
           });
       } else {
-        // Proses Daftar
+        // PROSES DAFTAR (REGISTER)
         createUserWithEmailAndPassword(auth, email, password)
+          .then((userCredential) => {
+            // Setelah berhasil daftar, simpan nama pengguna ke profil Firebase
+            return updateProfile(userCredential.user, {
+              displayName: fullname
+            });
+          })
           .catch((error) => {
-            showError(error.message.includes("email-already-in-use") ? "Email sudah terdaftar!" : error.message);
-            btnAction.innerText = "Daftar Akun Baru";
+            showError(error.message.includes("email-already-in-use") ? "Email sudah terdaftar dalam sistem." : error.message);
+            btnAction.innerText = "Registrasi Akun Baru";
           });
       }
-    });
-
-    // Login dengan Google
-    document.getElementById("btn-google").addEventListener("click", () => {
-      signInWithPopup(auth, provider).catch((error) => {
-        showError("Gagal login dengan Google: " + error.message);
-      });
     });
   </script>
 
