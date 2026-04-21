@@ -202,9 +202,9 @@
           return;
         }
 
-        let reply = `✅ Tercatat: ${data.item || "Tidak diketahui"}`;
-        if (data.harga > 0) reply += ` (Rp ${data.harga.toLocaleString('id-ID')})`;
-        if (data.kalori_estimasi > 0) reply += ` | 🔥 Estimasi ${data.kalori_estimasi} kkal.`;
+        // --- REVISI: Mengambil pesan asik langsung dari AI ---
+        // Jika AI gagal membuat pesan_balasan, gunakan teks cadangan
+        let reply = data.pesan_balasan || `✅ Oke, ${data.item || "Barang"} udah dicatat ya!`;
         
         appendMessage(reply, "ai");
 
@@ -213,7 +213,7 @@
           await addDoc(collection(db, "laporan_harian"), {
             userId: currentUser.uid,        // <-- Mengikat data dengan akun user
             pesan_asli: text,               // <-- Menyimpan riwayat ketikan user
-            reply_ai: reply,                // <-- Menyimpan riwayat balasan AI
+            reply_ai: reply,                // <-- Menyimpan riwayat balasan asik dari AI
             
             kategori: data.kategori || "lain-lain",
             item: data.item || "Tidak diketahui", 
