@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KostFit - Mode Diet</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    /* === CSS GLOBAL (Sama dengan index.html) === */
+    :root {
+      --primary: #2ECC71;
+      --secondary: #3498DB;
+      --danger: #E74C3C;
+      --bg-color: #F8F9F9;
+      --text-main: #2C3E50;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body { background-color: #E5E8E8; display: flex; justify-content: center; }
+
+    #app-container {
+      background-color: var(--bg-color);
+      width: 100%; max-width: 480px; min-height: 100vh;
+      display: flex; flex-direction: column;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    header {
+      background-color: var(--primary); color: white;
+      padding: 15px; display: flex; align-items: center;
+    }
+    .back-btn {
+      background: none; border: none; color: white;
+      font-size: 20px; cursor: pointer; margin-right: 15px;
+      font-weight: bold;
+    }
+
+    main { flex: 1; padding: 15px; }
+
+    .card {
+      background: white; border-radius: 12px; padding: 20px;
+      margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    h3 { color: var(--text-main); margin-bottom: 15px; text-align: center; }
+
+    .btn-download {
+      background-color: var(--text-main); color: white;
+      border: none; padding: 12px; border-radius: 10px;
+      width: 100%; font-size: 16px; font-weight: bold;
+      cursor: pointer; margin-bottom: 15px;
+    }
+
+    .alert-red {
+      color: var(--danger); font-weight: bold;
+      background-color: #FDEDEC; padding: 10px;
+      border-radius: 8px; margin-bottom: 5px;
+      border-left: 4px solid var(--danger);
+    }
+
+    ul { list-style-type: none; }
+    li { padding: 8px 0; border-bottom: 1px solid #eee; }
+  </style>
+</head>
+<body>
+
+  <div id="app-container">
+    <header>
+      <button class="back-btn" onclick="window.location.href='index.html'">←</button>
+      <h2>Laporan Diet</h2>
+    </header>
+
+    <main id="laporan-area">
+      <button class="btn-download" onclick="downloadPDF()">📥 Unduh PDF Laporan</button>
+
+      <section class="card">
+        <h3>Diagram Kalori (Minggu Ini)</h3>
+        <canvas id="dietChart"></canvas>
+      </section>
+
+      <section class="card">
+        <h3>🚨 Peringatan Makanan</h3>
+        <ul id="warning-list">
+          <li style="color: #7F8C8D; text-align: center; font-size: 14px;">Memuat data dari database...</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h3>💡 Pola Hidup Sehat</h3>
+        <p style="font-size: 14px; color: #555; line-height: 1.5;">
+          Sebagai anak kost, pastikan minum air putih minimal 2 liter per hari. Kurangi gorengan dan perbanyak sayur berkuah (seperti sayur sop atau bayam) yang murah dan sehat!
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDooErB7K4vFtmC6-PcI30v82Vh6b85fPI",
+      authDomain: "berbasis-ai.firebaseapp.com",
+      projectId: "berbasis-ai",
+      storageBucket: "berbasis-ai.firebasestorage.app",
+      messagingSenderId: "962437652324",
+      appId: "1:962437652324:web:4426a5efcabf72caebe471"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Fungsi untuk memuat data dari Firebase
+    async function loadDietData() {
+      try {
+        const q = query(collection(db, "laporan_harian"), orderBy("waktu_input", "desc"));
+        const querySnapshot = await getDocs(q);
+        
+        let makananFrekuensi = {};
+        let namaMakanan = [];
+        let jumlahKalori = [];
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          if(data.kategori === "makanan" && data.kalori > 0) {
+            // Hitung frekuensi makanan untuk peringatan
+            const itemLCase = data.item.toLowerCase();
+            if(makananFrekuensi[itemLCase]) {
+              makananFrekuensi[itemLCase]++;
+            } else {
+              makananFrekuensi[itemLCase] = 1;
+            }
+
+            // Siapkan data untuk grafik (maksimal 5 item terakhir agar rapi)
+            if(namaMakanan.length < 5) {
+              namaMakanan.push(data.item);
+              jumlahKalori.push(data.kalori);
+            }
+          }
+        });
+
+        // 1. Render Diagram Chart.js
+        renderChart(namaMakanan, jumlahKalori);
+
+        // 2. Render Peringatan Makanan (Jika dimakan > 2 kali)
+        const warningList = document.getElementById("warning-list");
+        warningList.innerHTML = ""; // Kosongkan text loading
+        let adaPeringatan = false;
+
+        for (const [makanan, jumlah] of Object.entries(makananFrekuensi)) {
+          if(jumlah > 2) {
+            adaPeringatan = true;
+            warningList.innerHTML += `<li class="alert-red">Kamu makan <b>${makanan}</b> sebanyak ${jumlah}x! Hati-hati ya.</li>`;
+          }
+        }
+        
+        if(!adaPeringatan) {
+          warningList.innerHTML = `<li style="color: var(--primary); text-align:center;">Mantap! Pola makanmu masih aman.</li>`;
+        }
+
+      } catch (error) {
+        console.error("Gagal memuat data:", error);
+        document.getElementById("warning-list").innerHTML = `<li>Gagal menarik data database.</li>`;
+      }
+    }
+
+    // Fungsi untuk menggambar Diagram menggunakan Chart.js
+    function renderChart(labels, dataKalori) {
+      const ctx = document.getElementById('dietChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar', // Bisa diganti 'pie' atau 'line'
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Estimasi Kalori',
+            data: dataKalori,
+            backgroundColor: '#2ECC71',
+            borderRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+
+    // Panggil fungsi saat halaman selesai dimuat
+    loadDietData();
+  </script>
+
+  <script>
+    function downloadPDF() {
+      // Sembunyikan tombol download sementara agar tidak ikut ke-print
+      const btn = document.querySelector('.btn-download');
+      btn.style.display = 'none';
+
+      const element = document.getElementById('laporan-area');
+      const opt = {
+        margin:       10,
+        filename:     'Laporan_Diet_KostFit.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      // Generate PDF, lalu munculkan lagi tombolnya
+      html2pdf().set(opt).from(element).save().then(() => {
+        btn.style.display = 'block';
+      });
+    }
+  </script>
+
+</body>
+</html>
