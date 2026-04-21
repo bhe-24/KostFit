@@ -1,7 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default async function handler(req, res) {
-  // Hanya menerima metode POST dari chat.html
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Hanya menerima method POST' });
   }
@@ -11,37 +10,52 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Pesan tidak boleh kosong' });
   }
 
-  try {
-    // Mengambil API Key dari Environment Variables Vercel
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // Kita pakai model gemini-pro atau gemini-1.5-flash
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' }); 
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-    // Prompt khusus agar AI menjadi JSON generator
-    const prompt = `Kamu adalah asisten pencatat diet dan keuangan untuk anak kost.
-    Tugasmu mengekstrak informasi dari kalimat berikut: "${message}"
-    
-    Keluarkan balasannya HANYA dalam format JSON dengan struktur yang persis seperti ini:
-    {
-      "kategori": "makanan" atau "pengeluaran_lain",
-      "item": "nama makanan atau barang",
-      "harga": angka bulat (tanpa Rp atau titik, isi 0 jika tidak ada),
-      "kalori_estimasi": angka bulat (estimasi kalori, isi 0 jika bukan makanan)
-    }`;
+  // PROMPT KETAT: Memaksa AI menjadi asisten gaul dan melarang keras HTML
+  const prompt = `Kamu adalah asisten pengatur diet dan keuangan yang ramah dan asik untuk anak kost.
+  Tugasmu mengekstrak informasi dari input user: "${message}"
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
-    // Membersihkan teks barangkali AI membalas dengan format markdown ```json ... ```
-    const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const data = JSON.parse(cleanJson);
+  ATURAN MUTLAK (DILARANG DILANGGAR):
+  1. HANYA KELUARKAN FORMAT JSON. 
+  2. DILARANG KERAS menambahkan teks pembuka/penutup, markdown, atau tag HTML apa pun.
+  3. Format JSON wajib seperti ini:
+  {
+    "kategori": "makanan" atau "lain-lain",
+    "item": "Nama makanan/barang singkat",
+    "harga": angka bulat (isi 0 jika tidak ada harga),
+    "kalori_estimasi": angka bulat (isi 0 jika bukan makanan),
+    "pesan_balasan": "Sapa user dengan ramah. Konfirmasi apa yang dicatat dan harganya. Jika itu makanan, beritahu estimasi kalorinya dan berikan sedikit saran diet ringan atau pujian hemat ala anak kost."
+  }`;
 
-    // Kirim data JSON kembali ke frontend
-    res.status(200).json(data);
+  // Daftar model yang akan dicoba berurutan (Fallback System)
+  // Catatan: gemma-2-9b-it adalah versi Gemma terbaru yang tersedia di API Google saat ini
+  const modelsToTry = ['gemini-2.5-flash', 'gemma-4-26b-it'];
+  let lastError = null;
 
-  } catch (error) {
-    console.error("Error AI:", error);
-    res.status(500).json({ error: 'Waduh, AI-nya lagi pusing nih. Gagal memproses.' });
+  for (const modelName of modelsToTry) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      let text = response.text();
+      
+      // Pembersihan Ekstra: Membuang semua halusinasi HTML/Markdown jika AI bandel
+      text = text.replace(/```json/g, '').replace(/```/g, ''); // Buang bungkus markdown
+      text = text.replace(/<[^>]*>?/gm, ''); // Buang semua tag HTML jika ada
+      
+      const data = JSON.parse(text.trim());
+
+      // Jika berhasil di-parse jadi JSON, langsung kirim dan hentikan loop
+      return res.status(200).json(data);
+
+    } catch (error) {
+      console.warn(`Gagal menggunakan model ${modelName}, mencoba model selanjutnya...`, error.message);
+      lastError = error;
+    }
   }
+
+  // Jika semua model gagal
+  console.error("Semua model AI gagal:", lastError);
+  res.status(500).json({ error: 'AI sedang kebingungan nih. Coba lagi ya!' });
 }
