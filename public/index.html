@@ -3,148 +3,182 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KostFit - Diet & Keuangan</title>
+  <title>KostFit - Beranda</title>
   
   <style>
-    /* === CSS GLOBAL & MOBILE-FIRST === */
+    /* === CSS MODERN CORPORATE === */
     :root {
-      --primary: #2ECC71; /* Hijau Diet */
-      --secondary: #3498DB; /* Biru Uang */
-      --danger: #E74C3C; /* Merah Peringatan */
-      --bg-color: #F8F9F9;
+      --primary-dark: #0F5132; 
+      --primary-light: #2ECC71; 
+      --secondary: #3498DB; 
+      --danger: #E74C3C; 
+      --bg-corporate: #E9ECEF;
       --text-main: #2C3E50;
+      --text-muted: #6C757D;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
 
-    body { background-color: #E5E8E8; display: flex; justify-content: center; }
+    body { background-color: var(--bg-corporate); display: flex; justify-content: center; }
 
-    /* Pembatas Layar HP */
     #app-container {
-      background-color: var(--bg-color);
-      width: 100%;
-      max-width: 480px; 
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      background-color: #F8F9FA;
+      width: 100%; max-width: 480px; min-height: 100vh;
+      display: flex; flex-direction: column;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
     }
 
-    /* === HEADER === */
+    /* === HEADER GRADASI === */
     header {
-      background-color: var(--primary);
-      color: white;
-      text-align: center;
-      padding: 20px 15px;
-      border-bottom-left-radius: 15px;
-      border-bottom-right-radius: 15px;
-      position: relative; /* Ditambahkan untuk posisi tombol logout */
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-light) 100%);
+      color: white; padding: 30px 20px;
+      border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
+      position: relative; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.2);
     }
 
-    /* Tombol Logout Baru */
+    .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .header-top h1 { font-size: 24px; font-weight: 700; letter-spacing: 1px; }
+    
     .btn-logout {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      color: white;
-      padding: 5px 10px;
-      border-radius: 8px;
-      font-size: 12px;
-      cursor: pointer;
-      font-weight: bold;
+      background: rgba(255, 255, 255, 0.2); border: none; color: white;
+      padding: 6px 12px; border-radius: 8px; font-size: 12px;
+      cursor: pointer; font-weight: bold; transition: background 0.3s;
     }
     .btn-logout:hover { background: rgba(255, 255, 255, 0.4); }
 
+    .greeting { font-size: 18px; font-weight: 600; margin-bottom: 5px; }
+    .sub-greeting { font-size: 13px; opacity: 0.9; }
+
     /* === NAVIGASI === */
-    nav { display: flex; justify-content: space-around; padding: 20px 15px; }
-    
+    nav { display: flex; justify-content: space-around; padding: 20px 15px 10px; }
     .nav-btn {
-      flex: 1; margin: 0 5px; padding: 15px 10px;
+      flex: 1; margin: 0 5px; padding: 12px 10px;
       border: none; border-radius: 10px; color: white;
-      font-weight: bold; cursor: pointer; transition: transform 0.2s;
+      font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     .nav-btn:active { transform: scale(0.95); }
-    .btn-diet { background-color: var(--primary); }
+    .btn-diet { background-color: var(--primary-light); }
     .btn-money { background-color: var(--secondary); }
 
     /* === KONTEN UTAMA === */
-    main { flex: 1; padding: 15px; }
+    main { flex: 1; padding: 15px; overflow-y: auto; }
 
     .card {
       background: white; border-radius: 12px; padding: 20px;
-      margin-bottom: 15px; text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+      border: 1px solid #eee;
     }
 
-    .btn-chat {
-      margin-top: 10px; background-color: var(--text-main);
-      color: white; border: none; padding: 15px 20px;
-      border-radius: 25px; font-size: 16px; cursor: pointer;
-      width: 100%; font-weight: bold;
+    /* === CHAT PREVIEW ANIMASI === */
+    .chat-preview-container {
+      background: #F8F9FA; border-radius: 12px 12px 0 0;
+      padding: 20px; border: 1px solid #eee; border-bottom: none;
+      min-height: 90px; display: flex; flex-direction: column; justify-content: flex-end;
     }
+    .preview-bubble {
+      background: white; padding: 10px 15px; border-radius: 15px;
+      border-bottom-left-radius: 2px; font-size: 14px; color: var(--text-main);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05); width: fit-content;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    .btn-chat-modern {
+      background: var(--text-main); color: white; border: none;
+      padding: 15px; border-radius: 0 0 12px 12px; font-size: 15px;
+      cursor: pointer; width: 100%; font-weight: bold;
+      transition: background 0.3s;
+    }
+    .btn-chat-modern:hover { background: #1A252F; }
 
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* === SUMMARY HARI INI === */
+    .card h3 { color: var(--text-main); margin-bottom: 15px; font-size: 16px; display: flex; justify-content: space-between; align-items: center;}
     .summary-item {
       display: flex; justify-content: space-between;
-      padding: 12px 0; border-bottom: 1px solid #eee; font-weight: 500;
+      padding: 12px 0; border-bottom: 1px solid #eee; font-weight: 500; font-size: 15px;
     }
     .summary-item:last-child { border-bottom: none; }
-    
-    .value-diet { color: var(--primary); font-weight: bold; }
+    .value-diet { color: var(--primary-light); font-weight: bold; }
     .value-money { color: var(--danger); font-weight: bold; }
 
-    /* === FOOTER === */
-    footer { text-align: center; padding: 15px; color: #7F8C8D; font-size: 14px; }
+    /* === REKOMENDASI MAKANAN === */
+    .btn-refresh {
+      background: #eee; border: none; padding: 5px 10px; border-radius: 6px;
+      font-size: 12px; cursor: pointer; color: var(--text-main); font-weight: 600;
+    }
+    .btn-refresh:hover { background: #ddd; }
+    
+    .recom-grid { display: flex; flex-direction: column; gap: 10px; }
+    .recom-item {
+      background: #F8F9FA; border: 1px solid #E0E0E0; border-radius: 10px;
+      padding: 12px; display: flex; flex-direction: column;
+    }
+    .recom-title { font-weight: 600; color: var(--primary-dark); font-size: 14px; margin-bottom: 5px;}
+    .recom-macros { font-size: 12px; color: var(--text-muted); display: flex; gap: 10px; margin-top: 5px;}
+    .macro-badge { background: white; padding: 2px 6px; border-radius: 4px; border: 1px solid #ddd;}
+
+    footer { text-align: center; padding: 15px; color: var(--text-muted); font-size: 13px; }
   </style>
 </head>
 <body>
 
   <div id="app-container">
     <header>
-      <button class="btn-logout" onclick="logoutAccount()">Keluar</button>
-      <h1>KostFit</h1>
-      <p style="font-size: 14px; margin-top: 5px; opacity: 0.9;">Asisten Pintar Anak Kost</p>
+      <div class="header-top">
+        <h1>KostFit</h1>
+        <button class="btn-logout" onclick="logoutAccount()">Keluar</button>
+      </div>
+      <div class="greeting" id="greeting-text">Memuat...</div>
+      <div class="sub-greeting">Ringkasan harianmu sudah siap. (Profil dalam pengembangan)</div>
     </header>
 
     <nav>
-      <button class="nav-btn btn-diet" onclick="window.location.href='diet.html'">🎯 Diet</button>
+      <button class="nav-btn btn-diet" onclick="window.location.href='diet.html'">🎯 Mode Diet</button>
       <button class="nav-btn btn-money" onclick="window.location.href='money.html'">💰 Keuangan</button>
     </nav>
 
     <main>
-      <section class="card">
-        <h3 style="color: var(--text-main);">Lapor Sekarang!</h3>
-        <p style="color: #7F8C8D; font-size: 14px; margin: 10px 0;">Habis jajan atau makan besar? Catat pakai AI.</p>
-        <button class="btn-chat" onclick="window.location.href='chat.html'">💬 Chat AI Pencatat</button>
+      <section style="margin-bottom: 20px;">
+        <div class="chat-preview-container">
+          <div class="preview-bubble" id="animated-preview">🤖 Halo! Ada pengeluaran hari ini?</div>
+        </div>
+        <button class="btn-chat-modern" onclick="window.location.href='chat.html'">Mulai Chat dengan AI</button>
       </section>
 
       <section class="card">
-        <h3 style="color: var(--text-main); margin-bottom: 10px;">Ringkasan Hari Ini</h3>
+        <h3>Ringkasan Hari Ini <span>📅</span></h3>
         <div class="summary-item">
           <span>Kalori Masuk:</span>
-          <span class="value-diet" id="today-cal">0 kkal</span>
+          <span class="value-diet" id="today-cal">Memuat...</span>
         </div>
         <div class="summary-item">
           <span>Pengeluaran:</span>
-          <span class="value-money" id="today-expense">Rp 0</span>
+          <span class="value-money" id="today-expense">Memuat...</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>
+          Menu <span id="waktu-rekomendasi">...</span> Ini
+          <button class="btn-refresh" onclick="fetchRecommendations()" id="btn-ref">🔄 Refresh</button>
+        </h3>
+        <div class="recom-grid" id="recom-container">
+          <p style="font-size: 13px; color: #7F8C8D; text-align: center; padding: 10px;">AI sedang menyusun menu sehatmu...</p>
         </div>
       </section>
     </main>
 
     <footer>
-      <p>&copy; 2026 KostFit App</p>
+      <p>&copy; 2026 KostFit Corporate</p>
     </footer>
   </div>
 
   <script type="module">
-    // 1. Import library Firebase dari CDN
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-    // IMPORT AUTHENTICATION
+    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
-    // 2. Konfigurasi Firebase milikmu
     const firebaseConfig = {
       apiKey: "AIzaSyDooErB7K4vFtmC6-PcI30v82Vh6b85fPI",
       authDomain: "berbasis-ai.firebaseapp.com",
@@ -154,28 +188,133 @@
       appId: "1:962437652324:web:4426a5efcabf72caebe471"
     };
 
-    // 3. Inisialisasi Aplikasi, Database, & Auth Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // 4. AUTH GUARD (Cek apakah user sudah login)
+    // 1. CEK LOGIN & SET SAPAAN
     onAuthStateChanged(auth, (user) => {
       if (!user) {
-        // Jika tidak ada user login, lempar kembali ke halaman login
         window.location.href = "auth.html";
       } else {
-        console.log("✅ Berhasil masuk sebagai:", user.email);
-        // Nanti kita akan tambahkan fungsi tarik data hari ini khusus untuk user.uid di sini
+        const userName = user.displayName || "FitKids";
+        setGreeting(userName);
+        loadTodaySummary(user.uid);
+        fetchRecommendations(); // Tarik otomatis saat masuk menggunakan API asli
       }
     });
 
-    // 5. Fungsi Logout
+    function setGreeting(name) {
+      const hour = new Date().getHours();
+      let waktu = "Malam";
+      if (hour >= 5 && hour < 11) waktu = "Pagi";
+      else if (hour >= 11 && hour < 15) waktu = "Siang";
+      else if (hour >= 15 && hour < 18) waktu = "Sore";
+      
+      document.getElementById("greeting-text").innerText = `Selamat ${waktu}, ${name}!`;
+      document.getElementById("waktu-rekomendasi").innerText = waktu;
+      window.currentWaktu = waktu; // Simpan untuk API Vercel
+    }
+
+    // 2. LOGIKA ANIMASI PREVIEW CHAT
+    const previewTexts = [
+      "🤖 Halo! Habis jajan apa hari ini?",
+      "💡 Jangan lupa catat sarapanmu ya!",
+      "💸 Pemasukan atau pengeluaran? Sini catat.",
+      "🥗 Tetap terhidrasi! Udah minum air putih?"
+    ];
+    let previewIndex = 0;
+    setInterval(() => {
+      previewIndex = (previewIndex + 1) % previewTexts.length;
+      const bubble = document.getElementById("animated-preview");
+      bubble.style.animation = 'none';
+      bubble.offsetHeight; // trigger reflow
+      bubble.style.animation = 'fadeIn 0.5s ease-in-out';
+      bubble.innerText = previewTexts[previewIndex];
+    }, 4000); // Ganti teks tiap 4 detik
+
+    // 3. TARIK DATA HARI INI SECARA REAL-TIME
+    async function loadTodaySummary(userId) {
+      try {
+        const q = query(collection(db, "laporan_harian"), where("userId", "==", userId));
+        const querySnapshot = await getDocs(q);
+        
+        let totalCal = 0;
+        let totalExp = 0;
+        
+        // Buat rentang waktu hari ini
+        const startOfToday = new Date();
+        startOfToday.setHours(0,0,0,0);
+        
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          // Filter lokal: Hanya hitung jika waktu_input adalah hari ini
+          if (data.waktu_input) {
+            const docDate = data.waktu_input.toDate();
+            if (docDate >= startOfToday) {
+              totalCal += (data.kalori || 0);
+              totalExp += (data.harga || 0);
+            }
+          }
+        });
+
+        document.getElementById("today-cal").innerText = `${totalCal} kkal`;
+        document.getElementById("today-expense").innerText = `Rp ${totalExp.toLocaleString('id-ID')}`;
+      } catch (error) {
+        console.error("Gagal memuat ringkasan hari ini:", error);
+      }
+    }
+
+    // 4. FUNGSI REKOMENDASI AI (Sudah terhubung ke Vercel API)
+    window.fetchRecommendations = async function() {
+      const container = document.getElementById("recom-container");
+      const btnRef = document.getElementById("btn-ref");
+      btnRef.innerText = "⏳ Memuat...";
+      
+      try {
+        // Tembak ke API recommend.js di Vercel
+        const response = await fetch('/api/recommend', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ waktu: window.currentWaktu })
+        });
+        
+        const aiData = await response.json(); 
+
+        if (aiData.error) {
+          throw new Error(aiData.error);
+        }
+
+        container.innerHTML = ""; // Bersihkan kontainer loading
+        
+        // Looping data asli dari AI
+        aiData.forEach(item => {
+          container.innerHTML += `
+            <div class="recom-item">
+              <span style="font-size:12px; color:var(--text-muted);">${item.jenis}</span>
+              <span class="recom-title">${item.menu}</span>
+              <div class="recom-macros">
+                <span class="macro-badge">🔥 ${item.cal} kkal</span>
+                <span class="macro-badge">🥩 Pro: ${item.pro}</span>
+                <span class="macro-badge">💧 Lemak: ${item.fat}</span>
+              </div>
+            </div>
+          `;
+        });
+        
+        btnRef.innerText = "🔄 Refresh";
+
+      } catch (error) {
+        console.error("Error dari API Vercel:", error);
+        container.innerHTML = `<p style="color:red; text-align:center; font-size:14px;">Gagal memuat rekomendasi pintar dari AI.</p>`;
+        btnRef.innerText = "🔄 Refresh";
+      }
+    }
+
+    // Fungsi Logout
     window.logoutAccount = function() {
       signOut(auth).then(() => {
         window.location.href = "auth.html";
-      }).catch((error) => {
-        console.error("Gagal logout:", error);
       });
     }
   </script>
