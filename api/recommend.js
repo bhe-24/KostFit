@@ -11,13 +11,13 @@ export default async function handler(req, res) {
 
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-  // PROMPT KETAT: Memaksa AI mengembalikan Array JSON
+  // PROMPT KETAT UNTUK GEMMA
   const prompt = `Kamu adalah ahli gizi untuk anak kost yang ingin hidup sehat dengan budget terbatas.
   Berikan rekomendasi menu makan ${waktuMakan} yang terdiri dari 3 jenis: Makanan Utama, Minuman, dan Camilan.
   
   ATURAN MUTLAK (DILARANG DILANGGAR):
   1. HANYA KELUARKAN FORMAT JSON ARRAY. 
-  2. DILARANG menambahkan teks, markdown, atau tag HTML apa pun.
+  2. DILARANG menambahkan teks pengantar, markdown, atau tag HTML apa pun.
   3. Format JSON wajib persis seperti ini (array berisi 3 objek):
   [
     { "jenis": "🍛 Makanan Utama", "menu": "Nama Makanan", "cal": angka_kalori_bulat, "pro": "Xg", "fat": "Yg" },
@@ -25,20 +25,25 @@ export default async function handler(req, res) {
     { "jenis": "🍎 Camilan", "menu": "Nama Camilan", "cal": angka_kalori_bulat, "pro": "Xg", "fat": "Yg" }
   ]`;
 
-  // Sistem Fallback Model
-  const modelsToTry = ['gemma-4-26b-it', 'gemini-3.1-flash-preview'];
+  // MENGGUNAKAN MODEL GEMMA 4 TERBARU
+  const modelsToTry = ['gemma-4-26b-it', 'gemma-4-9b-it'];
   let lastError = null;
 
   for (const modelName of modelsToTry) {
     try {
-      const model = genAI.getGenerativeModel({ model: modelName });
+      const model = genAI.getGenerativeModel({ 
+          model: modelName,
+          generationConfig: {
+              temperature: 0.6 // Sedikit diturunkan agar lebih patuh pada format JSON
+          }
+      });
+
       const result = await model.generateContent(prompt);
       const response = await result.response;
       let text = response.text();
       
-      // Pembersihan Ekstra
-      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      text = text.replace(/<[^>]*>?/gm, ''); 
+      // PEMBERSIHAN EKSTRA: Berjaga-jaga jika Gemma masih menggunakan blok markdown
+      text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
       
       const data = JSON.parse(text);
 
@@ -46,7 +51,7 @@ export default async function handler(req, res) {
       return res.status(200).json(data);
 
     } catch (error) {
-      console.warn(`Gagal dengan model ${modelName}`, error.message);
+      console.warn(`Gagal dengan model ${modelName}:`, error.message);
       lastError = error;
     }
   }
