@@ -26,7 +26,7 @@ export default async function handler(req, res) {
   ]`;
 
   // Sistem Fallback Model
-  const modelsToTry = ['gemini-2.5-flash', 'gemma-4-26b-it'];
+  const modelsToTry = ['gemma-3-31b-it', 'gemma-4-26b-it'];
   let lastError = null;
 
   for (const modelName of modelsToTry) {
