@@ -91,11 +91,12 @@
   </div>
 
   <script type="module">
-    // 1. Import Firebase dan fungsi Firestore
+    // 1. Import Firebase Core, Firestore, & Auth
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
-    // 2. Konfigurasi Firebase-mu
+    // 2. Konfigurasi Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDooErB7K4vFtmC6-PcI30v82Vh6b85fPI",
       authDomain: "berbasis-ai.firebaseapp.com",
@@ -108,11 +109,23 @@
     // 3. Inisialisasi Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
-    // Variabel elemen UI
+    // Variabel Global
+    let currentUser = null;
     const chatInput = document.getElementById('chat-input');
     const sendBtn = document.getElementById('send-btn');
     const chatBox = document.getElementById('chat-box');
+
+    // 4. CEK LOGIN USER & MUAT RIWAYAT CHAT
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        loadChatHistory(); // Tarik pesan lama dari database
+      } else {
+        window.location.href = "auth.html"; // Usir jika belum login
+      }
+    });
 
     // Fungsi menampilkan balon chat
     function appendMessage(text, sender) {
@@ -123,15 +136,49 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
+    // Fungsi Memuat Riwayat Chat Sebelumnya
+    async function loadChatHistory() {
+      try {
+        // Cari data yang userId-nya sama dengan akun yang sedang login
+        const q = query(collection(db, "laporan_harian"), where("userId", "==", currentUser.uid));
+        const querySnapshot = await getDocs(q);
+        
+        let historyData = [];
+        querySnapshot.forEach((doc) => {
+          historyData.push(doc.data());
+        });
+
+        // Urutkan berdasarkan waktu input (terlama ke terbaru)
+        historyData.sort((a, b) => {
+          const timeA = a.waktu_input ? a.waktu_input.toMillis() : 0;
+          const timeB = b.waktu_input ? b.waktu_input.toMillis() : 0;
+          return timeA - timeB;
+        });
+
+        // Hapus chat box lalu isi dengan riwayat (kecuali pesan pembuka)
+        chatBox.innerHTML = `<div class="bubble ai-msg">Halo! Kamu habis jajan atau makan apa hari ini? Ketik nama barang/makanan dan harganya ya!</div>`;
+        
+        historyData.forEach(data => {
+          if (data.pesan_asli) appendMessage(data.pesan_asli, 'user');
+          if (data.reply_ai) appendMessage(data.reply_ai, 'ai');
+        });
+        
+        chatBox.scrollTop = chatBox.scrollHeight;
+      } catch (error) {
+        console.error("Gagal memuat riwayat: ", error);
+      }
+    }
+
     // Fungsi Utama saat kirim pesan
     async function handleSend() {
+      if (!currentUser) return alert("Silakan login terlebih dahulu!");
+      
       const text = chatInput.value.trim();
       if (!text) return;
 
       appendMessage(text, 'user');
       chatInput.value = '';
 
-      // Tampilkan indikator AI berpikir
       const typingId = "typing-" + Date.now();
       const typingDiv = document.createElement('div');
       typingDiv.classList.add('bubble', 'ai-msg');
@@ -141,7 +188,6 @@
       chatBox.scrollTop = chatBox.scrollHeight;
 
       try {
-        // 1. Minta AI mengekstrak data lewat Vercel
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -149,42 +195,40 @@
         });
         
         const data = await response.json();
-        document.getElementById(typingId).remove(); // Hapus indikator berpikir
+        document.getElementById(typingId).remove(); 
 
         if (data.error) {
           appendMessage("Error: " + data.error, "ai");
           return;
         }
 
-        // 2. Tampilkan balasan AI di layar
-        let reply = `✅ Tercatat: ${data.item || "Item tidak diketahui"}`;
+        let reply = `✅ Tercatat: ${data.item || "Tidak diketahui"}`;
         if (data.harga > 0) reply += ` (Rp ${data.harga.toLocaleString('id-ID')})`;
         if (data.kalori_estimasi > 0) reply += ` | 🔥 Estimasi ${data.kalori_estimasi} kkal.`;
         
         appendMessage(reply, "ai");
 
-        // 3. SIMPAN KE FIREBASE FIRESTORE
+        // 5. SIMPAN KE FIREBASE DENGAN DATA USER ID
         try {
-          const docRef = await addDoc(collection(db, "laporan_harian"), {
-            kategori: data.kategori || "lain-lain",
+          await addDoc(collection(db, "laporan_harian"), {
+            userId: currentUser.uid,        // <-- Mengikat data dengan akun user
+            pesan_asli: text,               // <-- Menyimpan riwayat ketikan user
+            reply_ai: reply,                // <-- Menyimpan riwayat balasan AI
             
-            // PERBAIKAN: Beri nilai default agar Firebase tidak error "undefined"
+            kategori: data.kategori || "lain-lain",
             item: data.item || "Tidak diketahui", 
             harga: isNaN(Number(data.harga)) ? 0 : Number(data.harga),
             kalori: isNaN(Number(data.kalori_estimasi)) ? 0 : Number(data.kalori_estimasi),
-            
-            waktu_input: serverTimestamp() // Catat waktu dan tanggal otomatis
+            waktu_input: serverTimestamp() 
           });
-          console.log("Data berhasil masuk Firebase dengan ID: ", docRef.id);
         } catch (e) {
           console.error("Gagal menyimpan ke database: ", e);
-          appendMessage("⚠️ Pesan dicatat, tapi gagal tersimpan ke server database.", "ai");
+          appendMessage("⚠️ Pesan dicatat, tapi gagal tersimpan ke server.", "ai");
         }
 
       } catch (error) {
         document.getElementById(typingId).remove();
         appendMessage("Gagal terhubung ke AI (Server Vercel).", "ai");
-        console.error(error);
       }
     }
 
