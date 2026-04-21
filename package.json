@@ -1,0 +1,8 @@
+{
+  "name": "kostfit-api",
+  "version": "1.0.0",
+  "description": "API untuk KostFit App",
+  "dependencies": {
+    "@google/generative-ai": "^0.2.1"
+  }
+}
