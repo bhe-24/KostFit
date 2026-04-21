@@ -157,7 +157,7 @@
         }
 
         // 2. Tampilkan balasan AI di layar
-        let reply = `✅ Tercatat: ${data.item}`;
+        let reply = `✅ Tercatat: ${data.item || "Item tidak diketahui"}`;
         if (data.harga > 0) reply += ` (Rp ${data.harga.toLocaleString('id-ID')})`;
         if (data.kalori_estimasi > 0) reply += ` | 🔥 Estimasi ${data.kalori_estimasi} kkal.`;
         
@@ -167,9 +167,12 @@
         try {
           const docRef = await addDoc(collection(db, "laporan_harian"), {
             kategori: data.kategori || "lain-lain",
-            item: data.item,
-            harga: Number(data.harga) || 0,
-            kalori: Number(data.kalori_estimasi) || 0,
+            
+            // PERBAIKAN: Beri nilai default agar Firebase tidak error "undefined"
+            item: data.item || "Tidak diketahui", 
+            harga: isNaN(Number(data.harga)) ? 0 : Number(data.harga),
+            kalori: isNaN(Number(data.kalori_estimasi)) ? 0 : Number(data.kalori_estimasi),
+            
             waktu_input: serverTimestamp() // Catat waktu dan tanggal otomatis
           });
           console.log("Data berhasil masuk Firebase dengan ID: ", docRef.id);
