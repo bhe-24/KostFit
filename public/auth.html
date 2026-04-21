@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KostFit - Masuk / Daftar</title>
+  
+  <style>
+    /* === CSS GLOBAL & MOBILE-FIRST === */
+    :root {
+      --primary: #2ECC71;
+      --secondary: #3498DB;
+      --danger: #E74C3C;
+      --bg-color: #F8F9F9;
+      --text-main: #2C3E50;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body { background-color: #E5E8E8; display: flex; justify-content: center; }
+
+    #app-container {
+      background-color: var(--bg-color);
+      width: 100%; max-width: 480px; min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1); padding: 20px;
+    }
+
+    .auth-card {
+      background: white; border-radius: 15px; padding: 30px 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center;
+    }
+
+    .auth-card h1 { color: var(--primary); margin-bottom: 5px; }
+    .auth-card p { color: #7F8C8D; font-size: 14px; margin-bottom: 20px; }
+
+    /* Tombol Toggle Login/Daftar */
+    .toggle-box {
+      display: flex; justify-content: space-between; margin-bottom: 20px;
+      background: #eee; border-radius: 25px; padding: 5px;
+    }
+    .toggle-btn {
+      flex: 1; padding: 10px; border: none; background: transparent;
+      border-radius: 20px; font-weight: bold; cursor: pointer;
+      color: #777; transition: 0.3s;
+    }
+    .toggle-btn.active { background: white; color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+    /* Form Input */
+    .input-group { margin-bottom: 15px; text-align: left; }
+    .input-group label { display: block; font-size: 14px; margin-bottom: 5px; color: var(--text-main); font-weight: 500; }
+    .input-group input {
+      width: 100%; padding: 12px; border: 1px solid #ccc;
+      border-radius: 10px; outline: none; font-size: 15px;
+    }
+
+    .btn-submit {
+      width: 100%; padding: 15px; border: none; border-radius: 10px;
+      background-color: var(--primary); color: white; font-size: 16px;
+      font-weight: bold; cursor: pointer; margin-top: 10px;
+    }
+
+    .divider { margin: 20px 0; color: #aaa; font-size: 14px; display: flex; align-items: center; }
+    .divider::before, .divider::after { content: ""; flex: 1; border-bottom: 1px solid #ddd; margin: 0 10px; }
+
+    .btn-google {
+      width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 10px;
+      background-color: white; color: var(--text-main); font-size: 15px;
+      font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;
+    }
+    
+    #error-msg { color: var(--danger); font-size: 14px; margin-top: 15px; display: none; }
+  </style>
+</head>
+<body>
+
+  <div id="app-container">
+    <div class="auth-card">
+      <h1>KostFit</h1>
+      <p>Asisten Cerdas Keuangan & Dietmu</p>
+
+      <div class="toggle-box">
+        <button id="btn-login-tab" class="toggle-btn active" onclick="switchTab('login')">Masuk</button>
+        <button id="btn-register-tab" class="toggle-btn" onclick="switchTab('register')">Daftar</button>
+      </div>
+
+      <div id="form-area">
+        <div class="input-group">
+          <label>Email</label>
+          <input type="email" id="email" placeholder="contoh@email.com">
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" id="password" placeholder="Minimal 6 karakter">
+        </div>
+        <button id="btn-action" class="btn-submit">Masuk Sekarang</button>
+      </div>
+
+      <p id="error-msg">Error: Pesan kesalahan di sini</p>
+
+      <div class="divider">ATAU</div>
+
+      <button id="btn-google" class="btn-google">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20" alt="Google Logo">
+        Lanjutkan dengan Google
+      </button>
+    </div>
+  </div>
+
+  <script type="module">
+    // 1. Import Firebase Core & Auth
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+    import { 
+      getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+      GoogleAuthProvider, signInWithPopup, onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+    // 2. Konfigurasi Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDooErB7K4vFtmC6-PcI30v82Vh6b85fPI",
+      authDomain: "berbasis-ai.firebaseapp.com",
+      projectId: "berbasis-ai",
+      storageBucket: "berbasis-ai.firebasestorage.app",
+      messagingSenderId: "962437652324",
+      appId: "1:962437652324:web:4426a5efcabf72caebe471"
+    };
+
+    // 3. Inisialisasi
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // 4. Cek apakah user sudah login, jika sudah langsung pindah ke index.html
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.href = "index.html";
+      }
+    });
+
+    // === LOGIKA UI (TOGGLE LOGIN/DAFTAR) ===
+    let isLoginMode = true;
+    const btnAction = document.getElementById("btn-action");
+    const errorMsg = document.getElementById("error-msg");
+
+    window.switchTab = function(mode) {
+      isLoginMode = (mode === 'login');
+      document.getElementById("btn-login-tab").classList.toggle("active", isLoginMode);
+      document.getElementById("btn-register-tab").classList.toggle("active", !isLoginMode);
+      btnAction.innerText = isLoginMode ? "Masuk Sekarang" : "Daftar Akun Baru";
+      errorMsg.style.display = "none";
+    }
+
+    function showError(msg) {
+      errorMsg.innerText = msg;
+      errorMsg.style.display = "block";
+    }
+
+    // === LOGIKA AUTENTIKASI ===
+    btnAction.addEventListener("click", () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      if (!email || !password) {
+        showError("Email dan password wajib diisi!");
+        return;
+      }
+
+      btnAction.innerText = "Memproses...";
+
+      if (isLoginMode) {
+        // Proses Login
+        signInWithEmailAndPassword(auth, email, password)
+          .catch((error) => {
+            showError(error.message.includes("invalid-credential") ? "Email atau Password salah!" : error.message);
+            btnAction.innerText = "Masuk Sekarang";
+          });
+      } else {
+        // Proses Daftar
+        createUserWithEmailAndPassword(auth, email, password)
+          .catch((error) => {
+            showError(error.message.includes("email-already-in-use") ? "Email sudah terdaftar!" : error.message);
+            btnAction.innerText = "Daftar Akun Baru";
+          });
+      }
+    });
+
+    // Login dengan Google
+    document.getElementById("btn-google").addEventListener("click", () => {
+      signInWithPopup(auth, provider).catch((error) => {
+        showError("Gagal login dengan Google: " + error.message);
+      });
+    });
+  </script>
+
+</body>
+</html>
